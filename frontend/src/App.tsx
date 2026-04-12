@@ -68,6 +68,14 @@ export default function App() {
     saveBoard(next, stickers)
   }
 
+  const deleteCard = (id: string) => {
+    const nextCards = cards.filter(card => card.id !== id);
+    const nextStickers = stickers.filter(sticker => sticker.card_id !== id);
+    setStickers(nextStickers);
+    setCards(nextCards);
+    saveBoard(nextCards, nextStickers);
+  }
+
   const handleStickerDrag = (day: string) => {
     const newSticker: Sticker = {
       id: uid(),
@@ -108,7 +116,14 @@ export default function App() {
         + Add Card
       </button> 
 
-      {cards.map(c => <CardComponent key={c.id} card={c} onMouseDown={(e, id) => onMouseDown(e, "card", id)} />)}
+      {cards.map(c => (
+        <CardComponent
+          key={c.id}
+          card={c}
+          onMouseDown={(e, id) => onMouseDown(e, "card", id)}
+          onDelete={() => deleteCard(c.id)} // Pass the delete handler
+        />
+      ))}
       {stickers.map(s => <StickerComponent key={s.id} sticker={s} cards={cards} onMouseDown={(e, id) => onMouseDown(e, "sticker", id)} />)}
       {makeDefaultStickerButtons().map((btn) => (
         <div
