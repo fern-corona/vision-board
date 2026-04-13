@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from api import card_routes, board_routes
+from api import card_routes, board_routes, insights_routes
 from database.base import Base
 from database.engine import engine
 
@@ -17,3 +17,4 @@ app.add_middleware(
 
 app.include_router(card_routes.router)
 app.include_router(board_routes.router)
+app.include_router(insights_routes.router)

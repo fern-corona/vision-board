@@ -1,11 +1,23 @@
 import { useState, useEffect, useRef,  } from "react"
-import type { Card, Sticker } from "./types"
+import type { InsightsResponse, Card, Sticker } from "./types"
 import { fetchBoard, saveBoard } from "./api/board"
+import { fetchInsights } from "./api/insights"
 import {Card as CardComponent } from "./components/Card"
 import { Sticker as StickerComponent } from "./components/Sticker"
 import { useDrag} from "./hooks/useDrag"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
+const COLORS = [
+  { bg: "#fc34ec", border: "#f48fb1", text: "#880e4f"},
+  { bg: "#e8f5e9", border: "#a5d6a7", text: "#1b5e20"},
+  { bg: "#e3f2fd", border: "#90caf9", text: "#0d47a1"},
+  { bg: "#fff8e1", border: "#ffe082", text: "#e65100"},
+  { bg: "#f3e5f5", border: "#ce93d8", text: "#4a148c"},
+]
+
+
+
+
 const uid  = () => Math.random().toString(36).slice(2, 9)
 
 // Default stickers — one circle per day of the week, laid out in a row at the bottom
@@ -13,12 +25,19 @@ const makeDefaultStickerButtons = () =>
   DAYS.map((d, i) => ({ id: uid(), day: d, x: 60 + i * 100, y: 600, card_id: null, isButton: true }))
 
 
+
 export default function App() {
-  const [loaded, setLoaded] = useState(false)
+  const [loaded, setLoaded] = useState<boolean>(false)
   const [cards, setCards] = useState<Card[]>([])
   const [stickers, setStickers] = useState<Sticker[]>([])
+  const [position, setPosition] = useState({ x: 100, y: 100 })
+  const [showPanel, setShowPanel] = useState<boolean>(true);
+  const [insights, setInsights] = useState<InsightsResponse | null>(null);
+  
+  const [editingCard, setEditingCard] = useState<Card | null>(null)
+
   const boardRef = useRef<HTMLDivElement>(null)
-  const [position, setPosition] = useState({ x: 100, y: 100 });
+
   const { onMouseDown, onMouseMove, onMouseUp } = useDrag()
   
   useEffect(() => {
@@ -28,6 +47,14 @@ export default function App() {
       setLoaded(true)
      })
   }, [])
+  
+  useEffect(() => {
+    if (!loaded) return
+
+    fetchInsights().then(data => {
+      setInsights(data)
+    })
+  }, [stickers, loaded])
 
   useEffect(() => {
     const move = (e: MouseEvent) =>
@@ -75,6 +102,17 @@ export default function App() {
     setCards(nextCards);
     saveBoard(nextCards, nextStickers);
   }
+
+  const saveEdit = () => {
+    if (!editingCard) return
+
+    const next = cards.map(c => c.id === editingCard.id ? editingCard: c)
+    setCards(next)
+    saveBoard(next, stickers)
+    setEditingCard(null)
+  }
+
+  
 
   const handleStickerDrag = (day: string) => {
     const newSticker: Sticker = {

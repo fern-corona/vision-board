@@ -28,3 +28,24 @@ export interface BoardData {
 cards: Card[]
 stickers: Sticker[]
 }
+
+export interface InsightsResponse {
+  insights: {
+    card_title: string
+    emoji: string
+    days_count: number
+    percentage: number
+    message: string
+  }[]
+  total_days_tracked: number
+  unassigned_days: string[]
+  streak_message: string
+}
+
+export interface ColorScheme {
+  bg: string
+  border: string
+  text: string
+}
+
+
