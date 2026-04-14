@@ -33,10 +33,22 @@ export const useDrag = () => {
         const board = boardRef.current.getBoundingClientRect()
         const x = e.clientX - board.left - dragging.offsetX
         const y = e.clientY - board.top - dragging.offsetY
-        if (dragging.type === "card") {
+
+        if (dragging.type === "card" && cards != null) {
+            const card = cards.find(c => c.id === dragging.id)
+            if (!card) return 
+            
+            const delta_x = x - card.x
+            const delta_y = y - card.y 
+
             setCards(prev => prev.map(c => c.id === dragging.id ? { ...c, x, y } : c))
+            setStickers(prev => prev.map(s => s.card_id === dragging.id 
+                ? { ...s, x: s.x + delta_x, y: s.y + delta_y} 
+                : s))
         } else {
-            setStickers(prev => prev.map(s => s.id === dragging.id ? { ...s, x, y } : s))
+            setStickers(prev => prev.map(s => s.id === dragging.id 
+                ? { ...s, x, y } 
+                : s))
         }
         
     }, [dragging])
@@ -63,7 +75,7 @@ export const useDrag = () => {
                     mx >= card.x && 
                     mx <= card.x + 240 && 
                     my >= card.y && 
-                    my <= card.y + 160
+                    my <= card.y + 100
                 ) {
                     hitCardId = card.id
                     break 
