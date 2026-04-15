@@ -8,7 +8,7 @@ import { useDrag} from "./hooks/useDrag"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const COLORS = [
-  { bg: "#fc34ec", border: "#f48fb1", text: "#880e4f"},
+  { bg: "#fce4ec", border: "#f48fb1", text: "#880e4f"},
   { bg: "#e8f5e9", border: "#a5d6a7", text: "#1b5e20"},
   { bg: "#e3f2fd", border: "#90caf9", text: "#0d47a1"},
   { bg: "#fff8e1", border: "#ffe082", text: "#e65100"},
@@ -103,7 +103,7 @@ export default function App() {
     saveBoard(nextCards, nextStickers);
   }
 
-  const saveEdit = () => {
+  const saveEdit = (): void => {
     if (!editingCard) return
 
     const next = cards.map(c => c.id === editingCard.id ? editingCard: c)
@@ -119,7 +119,7 @@ export default function App() {
       id: uid(),
       day,
       x: 100,
-      y: 100,
+      y: 600,
       card_id: null
     } 
     const next = [...stickers, newSticker]
@@ -130,65 +130,75 @@ export default function App() {
 
 
 
-  if (!loaded) return <p>Loading...</p>
+  if (!loaded) return <p style={{ padding: 40}}>Loading...</p>
 
   return (
-    <div 
-      ref={boardRef}
-      style={{
-        position: "relative",
-        width: "100vw",
-        height: "100vh",
-        background: "#fdf6f0",
-        overflow: "hidden",
-      }}
-    >
-      <button
-        onClick={addCard}
-        style={{position: "absolute",
-                top: 20,
-                left: 20,
-                zIndex: 10
+
+    <div style={{ display: "flex", height: "100vh", fontFamily: "Georgia, serif", background: "#fdf6f0"}}>
+      {/*-------------BOARD ----------------------*/}
+      <div 
+        ref={boardRef}
+        style={{
+          flex: 1,
+          position: "relative",
+          overflow: "hidden",
+          background: "linear-gradient(135deg, #fdf6f0, #fce8f3, #e8f0fe",
         }}
       >
-        + Add Card
-      </button> 
-
-      {cards.map(c => (
-        <CardComponent
-          key={c.id}
-          card={c}
-          onMouseDown={(e, id) => onMouseDown(e, "card", id)}
-          onDelete={() => deleteCard(c.id)} // Pass the delete handler
-        />
-      ))}
-      {stickers.map(s => <StickerComponent key={s.id} sticker={s} cards={cards} onMouseDown={(e, id) => onMouseDown(e, "sticker", id)} />)}
-      {makeDefaultStickerButtons().map((btn) => (
-        <div
-          key={btn.id}
-          onMouseDown={() => handleStickerDrag(btn.day)}
-          style={{
-            position: "absolute",
-            left: btn.x,
-            top: btn.y,
-            width: 56,
-            height: 56,
-            borderRadius: "50%",
-            background: "#fff",
-            border: "2px solid #f48fb1",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            cursor: "grab",
-            userSelect: "none",
-            fontWeight: "bold",
-            fontSize: 13,
-            zIndex: 5,
-          }}
-          >
-            {btn.day}
+        {/* Header Bar */}
+        <div style= {{ position: "absolute", top: 0, left: 0, right: 0, padding: "14px 20px", background: "rgba(255,255,255,0.7)", backdropFilter: "blur(10px)", display: "flex", justifyContent: "space-between", alignItems: "center", zIndex: 10}}>
+          <h1 style= {{ margin: 0, fontSize: "1.5rem", fontWeight: 300, color: "#8b4567" }}> Vision Board</h1>
+          <div style={{ display: "flex", gap: 10 }}>
+            <button onClick={addCard} style={{padding: "8px 16px", background: "linear-gradient(135deg, #f48fb1, #ce93d8)", color: "white", border: "none", borderRadius: 40, cursor: "pointer", fontSize: "0.85rem" }}>
+            + Add Goal
+            </button>
+            <button onClick={() => setShowPanel(v => !v)} style={{padding: "8px 16px", background: "rgba(255, 255, 255, 0.8)", border: "1px solid #f0b8cc", borderRadius: 40, cursor: "pointer", fontSize: "0.85rem", color: "#8b4567" }}>
+              {showPanel ? "Hide" : "Show"} Insights
+            </button>
           </div>
-      ))}
+        </div>
+
+        {/*-------Goal Cards ------ */}
+        {cards.map(c => {
+          const col = COLORS[c.color % COLORS.length]
+          return (
+            <CardComponent
+              key={c.id}
+              card={c}
+              onMouseDown={(e, id) => onMouseDown(e, "card", id)}
+              onDelete={() => deleteCard(c.id)} 
+              col={col}
+            />    
+            )
+        })}
+        {stickers.map(s => <StickerComponent key={s.id} sticker={s} cards={cards} onMouseDown={(e, id) => onMouseDown(e, "sticker", id)} />)}
+        {makeDefaultStickerButtons().map((btn) => (
+          <div
+            key={btn.id}
+            onMouseDown={() => handleStickerDrag(btn.day)}
+            style={{
+              position: "absolute",
+              left: btn.x,
+              top: btn.y,
+              width: 56,
+              height: 56,
+              borderRadius: "50%",
+              background: "#fff",
+              border: "2px solid #f48fb1",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              cursor: "grab",
+              userSelect: "none",
+              fontWeight: "bold",
+              fontSize: 13,
+              zIndex: 5,
+            }}
+            >
+              {btn.day}
+            </div>
+        ))}
+      </div>
     </div>
   )
 }

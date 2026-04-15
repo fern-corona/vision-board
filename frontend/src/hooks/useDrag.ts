@@ -75,7 +75,7 @@ export const useDrag = () => {
                     mx >= card.x && 
                     mx <= card.x + 240 && 
                     my >= card.y && 
-                    my <= card.y + 100
+                    my <= card.y + 120
                 ) {
                     hitCardId = card.id
                     break 
