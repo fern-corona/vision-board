@@ -5,6 +5,7 @@ import { fetchInsights } from "./api/insights"
 import {Card as CardComponent } from "./components/Card"
 import { Sticker as StickerComponent } from "./components/Sticker"
 import { useDrag} from "./hooks/useDrag"
+import { EditModal } from "./components/EditModal"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const COLORS = [
@@ -106,9 +107,19 @@ export default function App() {
   const saveEdit = (): void => {
     if (!editingCard) return
 
-    const next = cards.map(c => c.id === editingCard.id ? editingCard: c)
-    setCards(next)
-    saveBoard(next, stickers)
+    const nextCard = cards.map(
+                              c => 
+                                c.id === editingCard.id 
+                                ? editingCard: c)
+    setCards(nextCard)
+    const nextStickers = stickers.map(
+                              s => 
+                                s.card_id === editingCard.id 
+                                  ? {...s, color: editingCard.color}
+                                  : s) 
+                          
+    setStickers(nextStickers)
+    saveBoard(nextCard, nextStickers)
     setEditingCard(null)
   }
 
@@ -167,11 +178,47 @@ export default function App() {
               card={c}
               onMouseDown={(e, id) => onMouseDown(e, "card", id)}
               onDelete={() => deleteCard(c.id)} 
+              setEditingCard={setEditingCard}
               col={col}
             />    
             )
         })}
-        {stickers.map(s => <StickerComponent key={s.id} sticker={s} cards={cards} onMouseDown={(e, id) => onMouseDown(e, "sticker", id)} />)}
+
+        {stickers.map(s => 
+            <StickerComponent 
+            key={s.id} 
+            sticker={s} 
+            cards={cards} 
+            onMouseDown={(e, id) => 
+              onMouseDown(e, "sticker", id)} 
+            COLORS={COLORS}
+          />)}
+        
+        {/* {editingCard && ( //TODO: might have to add a cancel button to modal
+          
+          <EditModal
+            editingCard={editingCard}
+            setEditingCard={setEditingCard}
+            saveEdit={saveEdit}
+            COLORS={COLORS}
+          />
+        )} */}
+
+        {editingCard && (
+          (() => {
+            console.log("Rendering EditModal with:", editingCard);
+            return (
+              <EditModal
+                editingCard={editingCard}
+                setEditingCard={setEditingCard}
+                saveEdit={saveEdit}
+                COLORS={COLORS}
+              />
+            );
+          })()
+        )}
+   
+         
         {makeDefaultStickerButtons().map((btn) => (
           <div
             key={btn.id}

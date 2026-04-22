@@ -61,7 +61,9 @@ export const Card: React.FC<Props> = ({card, onMouseDown, onDelete, setEditingCa
         }}
         >
             <button onClick={
-                e => { e.stopPropagation(); setEditingCard(card) 
+                e => { 
+                    e.stopPropagation()
+                    setEditingCard(card) 
                     
             }}
             style= {{
