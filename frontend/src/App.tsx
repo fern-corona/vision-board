@@ -6,6 +6,7 @@ import {Card as CardComponent } from "./components/Card"
 import { Sticker as StickerComponent } from "./components/Sticker"
 import { useDrag} from "./hooks/useDrag"
 import { EditModal } from "./components/EditModal"
+import { InsightsPanel } from "./components/InsightsPanel"
 
 const DAYS = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 const COLORS = [
@@ -193,16 +194,6 @@ export default function App() {
               onMouseDown(e, "sticker", id)} 
             COLORS={COLORS}
           />)}
-        
-        {/* {editingCard && ( //TODO: might have to add a cancel button to modal
-          
-          <EditModal
-            editingCard={editingCard}
-            setEditingCard={setEditingCard}
-            saveEdit={saveEdit}
-            COLORS={COLORS}
-          />
-        )} */}
 
         {editingCard && (
           (() => {
@@ -217,7 +208,6 @@ export default function App() {
             );
           })()
         )}
-   
          
         {makeDefaultStickerButtons().map((btn) => (
           <div
@@ -244,8 +234,18 @@ export default function App() {
             >
               {btn.day}
             </div>
-        ))}
+          ))
+        }
       </div>
+      {showPanel && (
+        <InsightsPanel
+            insights={insights}
+            cards={cards}
+            stickers={stickers}
+            COLORS={COLORS}
+            DAYS={DAYS}
+        />
+      )}
     </div>
   )
 }
