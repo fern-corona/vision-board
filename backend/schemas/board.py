@@ -6,4 +6,3 @@ from typing import List
 
 class BoardData(BaseModel): 
     cards: List[Card]
-    stickers: List[Sticker]

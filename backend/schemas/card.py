@@ -1,4 +1,6 @@
 from pydantic import BaseModel
+from typing import List
+from schemas.sticker import Sticker
 
 class Card(BaseModel):
     id: str
@@ -8,6 +10,7 @@ class Card(BaseModel):
     x: float = 100
     y: float = 100
     emoji: str = "*"
+    stickers: List[Sticker] = []
 
     class Config:
         from_attributes = True 

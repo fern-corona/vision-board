@@ -8,11 +8,17 @@ export const fetchBoard = async(): Promise<BoardData> => {
     return res.json()
 }
 
-export const saveBoard = async (cards: Card[], stickers: Sticker[]) => {
-    await fetch(`${API}/board`, {
+export const saveBoard = async (cards: Card[]) => {
+    console.log("Saving board:", JSON.stringify({ cards }, null, 2))  // ← add this
+  
+    const res = await fetch(`${API}/board`, {
         method: "POST",
         headers: {"Content-Type": "application/json" },
-        body: JSON.stringify({ cards, stickers }),
+        body: JSON.stringify({ cards }),
+        
     })
+    console.log("Save response status:", res.status)  // ← and this
+    const body = await res.json()
+    console.log("Save response body:", body)           
 }
 

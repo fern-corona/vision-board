@@ -1,101 +1,151 @@
-import {useState, useCallback } from "react"
-import type { Card, Sticker, DragState } from "../types"
-import { saveBoard } from "../api/board"
+import { useState, useCallback } from "react"
+import type { Card, DragState, Sticker } from "../types"
+
+// DAY_ORDER is used to sort stickers on a card in calendar order.
+// When a new sticker is dropped, we insert it and then sort the whole
+// array by this order rather than append it to the end.
+const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 export const useDrag = () => {
     const [dragging, setDragging] = useState<DragState | null>(null)
 
+    // draggingSticker holds a sticker that is currently being dragged
+    // across the screen. It follows the mouse until dropped or deleted.
+    const [draggingSticker, setDraggingSticker] = useState<Sticker | null>(null)
+
+    // ── Card drag start ────────────────────────────────────────────────────
     const onMouseDown = useCallback((
         e: React.MouseEvent,
-        type: "card" | "sticker",
+        type: "card",
         id: string
     ) => {
+        // If the click started inside a [data-no-drag] element (like a button),
+        // don't start a card drag
+        if ((e.target as HTMLElement).closest("[data-no-drag]")) return
+
         e.preventDefault()
         const rect = (e.currentTarget as HTMLElement).getBoundingClientRect()
-        setDragging({
-            type, 
-            id, 
-            offsetX: e.clientX - rect.left, 
-            offsetY: e.clientY - rect.top
-        })
+        setDragging({ type, id, offsetX: e.clientX - rect.left, offsetY: e.clientY - rect.top })
     }, [])
 
-
-    const onMouseMove = useCallback((
-        e: MouseEvent, 
-        boardRef: React.RefObject<HTMLDivElement | null>, 
-        cards: Card[], 
-        stickers: Sticker[], 
-        setCards: React.Dispatch<React.SetStateAction<Card[]>>, 
-        setStickers: React.Dispatch<React.SetStateAction<Sticker[]>>
+    // ── Sticker drag start ─────────────────────────────────────────────────
+    // Called when the user presses down on a day button.
+    // Creates a fresh sticker object that follows the mouse.
+    const onStickerMouseDown = useCallback((
+        e: React.MouseEvent,
+        day: string,
+        uid: () => string
     ) => {
-        if (!dragging || !boardRef.current) return 
+        e.preventDefault()
+        e.stopPropagation()
+
+        const newSticker: Sticker = {
+            id: uid(),
+            day,
+            x: e.clientX,
+            y: e.clientY,
+            card_id: null,
+            status: "none"
+        }
+        setDraggingSticker(newSticker)
+    }, [])
+
+    // ── Mouse move ─────────────────────────────────────────────────────────
+    // Handles both card dragging and sticker dragging.
+    // For cards: calculates position relative to the board container.
+    // For stickers: just tracks the raw mouse position (fixed on screen).
+    const onMouseMove = useCallback((
+        e: MouseEvent,
+        boardRef: React.RefObject<HTMLDivElement | null>,
+        cards: Card[],
+        setCards: React.Dispatch<React.SetStateAction<Card[]>>
+    ) => {
+        // ── Sticker following mouse ──
+        if (draggingSticker) {
+            setDraggingSticker(prev => prev ? { ...prev, x: e.clientX, y: e.clientY } : null)
+            return
+        }
+
+        // ── Card following mouse ──
+        if (!dragging || !boardRef.current) return
+        if (dragging.type !== "card") return
+
         const board = boardRef.current.getBoundingClientRect()
         const x = e.clientX - board.left - dragging.offsetX
         const y = e.clientY - board.top - dragging.offsetY
 
-        if (dragging.type === "card" && cards != null) {
-            const card = cards.find(c => c.id === dragging.id)
-            if (!card) return 
-            
-            const delta_x = x - card.x
-            const delta_y = y - card.y 
+        setCards(prev => prev.map(c =>
+            c.id === dragging.id ? { ...c, x, y } : c
+        ))
+    }, [dragging, draggingSticker])
 
-            setCards(prev => prev.map(c => c.id === dragging.id ? { ...c, x, y } : c))
-            setStickers(prev => prev.map(s => s.card_id === dragging.id 
-                ? { ...s, x: s.x + delta_x, y: s.y + delta_y} 
-                : s))
-        } else {
-            setStickers(prev => prev.map(s => s.id === dragging.id 
-                ? { ...s, x, y } 
-                : s))
-        }
-        
-    }, [dragging])
-
+    // ── Mouse up ───────────────────────────────────────────────────────────
+    // For stickers: checks if the mouse is over a card element by ID.
+    // If yes — attach the sticker to that card, inserting it in day order.
+    // If no  — discard the sticker entirely (don't add it anywhere).
     const onMouseUp = useCallback((
-        e: MouseEvent, 
-        boardRef: React.RefObject<HTMLDivElement | null>, 
-        cards: any[], 
-        stickers: any[], 
-        setStickers: React.Dispatch<React.SetStateAction<Sticker[]>>
+        e: MouseEvent,
+        cards: Card[],
+        setCards: React.Dispatch<React.SetStateAction<Card[]>>,
+        saveBoard: (cards: Card[]) => void
     ) => {
-        if (!dragging) return
-        if (!boardRef.current) return 
-         
-
-        if (dragging.type === "sticker") {
-            const board = boardRef.current.getBoundingClientRect()
-            const mx = e.clientX - board.left
-            const my = e.clientY - board.top
-
-            let hitCardId = null
-            for (const card of cards) {
-                if (
-                    mx >= card.x && 
-                    mx <= card.x + 240 && 
-                    my >= card.y && 
-                    my <= card.y + 120
-                ) {
-                    hitCardId = card.id
-                    break 
-                }
-            }
-
-            const nextStickers = stickers.map(s => 
-                s.id === dragging.id ? { ...s, card_id: hitCardId } : s) 
-            
-            setStickers(nextStickers)
-            saveBoard(cards, nextStickers)
-            console.log("hello")
-            console.log(hitCardId)    
-        } else {
-            saveBoard(cards, stickers)
+        // ── Card drag end ──
+        if (dragging) {
+            setDragging(null)
+            saveBoard(cards)
+            return
         }
-        
-        setDragging(null)
-    }, [dragging])
 
-    return { onMouseDown, onMouseMove, onMouseUp }
+        // ── Sticker drag end ──
+        if (!draggingSticker) return
 
+        let droppedOnCard: Card | undefined
+
+        for (const card of cards) {
+            const el = document.getElementById(card.id)
+            if (!el) continue
+
+            const rect = el.getBoundingClientRect()
+
+            if (
+                e.clientX >= rect.left &&
+                e.clientX <= rect.right &&
+                e.clientY >= rect.top &&
+                e.clientY <= rect.bottom
+            ) {
+                droppedOnCard = card
+                break
+            }
+        }
+
+        if (droppedOnCard) {
+            const nextCards = cards.map(card => {
+                if (card.id !== droppedOnCard!.id) return card
+
+                const existing = card.stickers || []
+
+                const alreadyHasDay = existing.some(s => s.day === draggingSticker.day)
+                if (alreadyHasDay) return card
+
+                const updated = [...existing, { ...draggingSticker, card_id: card.id }]
+                    .sort((a, b) => DAY_ORDER.indexOf(a.day) - DAY_ORDER.indexOf(b.day))
+
+                return { ...card, stickers: updated }
+            })
+
+            setCards(nextCards)
+            saveBoard(nextCards)
+        }
+
+        setDraggingSticker(null)
+    }, [dragging, draggingSticker])
+
+    return {
+        dragging,
+        draggingSticker,
+        onMouseDown,
+        onStickerMouseDown,
+        onMouseMove,
+        onMouseUp
+    }
 }

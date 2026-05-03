@@ -1,5 +1,6 @@
 
 export interface Card {
+    stickers: Sticker[]
     id: string
     title: string
     affirmation: string
@@ -15,6 +16,7 @@ day: string
 x: number 
 y: number 
 card_id: string | null
+status: "none" | "complete" | "incomplete" 
 }
 
 export interface DragState {
