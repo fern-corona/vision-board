@@ -18,10 +18,7 @@ const COLORS = [
 
 const uid = () => Math.random().toString(36).slice(2, 9)
 
-// The day buttons are always rendered in the same fixed positions.
-// They are not stickers themselves — they are the source that spawns
-// a new sticker when dragged. We regenerate them on every render since
-// they never move and have no persistent state.
+
 const DAY_BUTTONS = DAYS.map((d, i) => ({
   day: d,
   x: 60 + i * 100,
@@ -37,8 +34,7 @@ export default function App() {
 
   const boardRef = useRef<HTMLDivElement>(null)
 
-  // Handles all sticker status changes and deletions.
-// Called from Card.tsx when the user clicks done/not_done/reset/delete.
+
 const onStickerUpdate = (
   cardId: string,
   stickerId: string,
@@ -48,11 +44,11 @@ const onStickerUpdate = (
       if (card.id !== cardId) return card
 
       if (change === "delete") {
-        // Remove the sticker from the array entirely
+        
         return { ...card, stickers: (card.stickers || []).filter(s => s.id !== stickerId) }
       }
 
-      // For done / not_done / reset — update the status field
+    
       return {
         ...card,
         stickers: (card.stickers || []).map(s =>
@@ -64,11 +60,9 @@ const onStickerUpdate = (
     })
 
     setCards(next)
-    saveBoard(next)
+    saveBoard(next).then(() => fetchInsights().then(setInsights))
   }
 
-  // Pull everything we need out of useDrag — including the live sticker
-  // position so we can render the ghost sticker while dragging
   const {
     draggingSticker,
     onMouseDown,
@@ -85,20 +79,22 @@ const onStickerUpdate = (
     })
   }, [])
 
-  // ── Refresh insights whenever cards change ────────────────────────────────
   useEffect(() => {
     if (!loaded) return
     fetchInsights().then(setInsights)
-  }, [cards, loaded])
+  }, [loaded])
 
-  // ── Global mouse listeners ────────────────────────────────────────────────
-  // Attached to window so drag works even when mouse leaves the board area.
+
   useEffect(() => {
     const move = (e: MouseEvent) => onMouseMove(e, boardRef, cards, setCards)
 
-    // Pass saveBoard into onMouseUp so it can persist after a card drag ends
-    const up = (e: MouseEvent) => onMouseUp(e, cards, setCards, saveBoard)
-
+    const up = (e: MouseEvent) => onMouseUp(
+      e, 
+      cards, 
+      setCards, 
+      saveBoard,
+      () => fetchInsights().then(setInsights)
+    )
     window.addEventListener("mousemove", move)
     window.addEventListener("mouseup", up)
     return () => {
@@ -107,7 +103,6 @@ const onStickerUpdate = (
     }
   }, [cards, onMouseMove, onMouseUp])
 
-  // ── Card CRUD ─────────────────────────────────────────────────────────────
   const addCard = () => {
     const newCard: Card = {
       id: uid(),
@@ -141,7 +136,13 @@ const onStickerUpdate = (
   if (!loaded) return <p style={{ padding: 40 }}>Loading...</p>
 
   return (
-    <div style={{ display: "flex", height: "100vh", fontFamily: "Georgia, serif", background: "#fdf6f0" }}>
+    <div style={{ 
+      display: "flex", 
+      height: "100vh", 
+      width: "100%",
+      fontFamily: "Georgia, serif", 
+      background: "linear-gradient(135deg, #fdf6f0, #fce8f3, #e8f0fe)",
+      }}>
 
       {/* ── BOARD ─────────────────────────────────────────────────────────── */}
       <div
@@ -177,8 +178,7 @@ const onStickerUpdate = (
           )
         })}
 
-        {/* Day buttons — fixed source circles at the bottom of the board.
-            Dragging one spawns a new ghost sticker that follows the mouse. */}
+        {/* Day buttons */}
         {DAY_BUTTONS.map(btn => (
           <div
             data-no-drag="true"
@@ -207,13 +207,12 @@ const onStickerUpdate = (
           </div>
         ))}
 
-        {/* Ghost sticker — rendered at the mouse position while dragging.
-            This is purely visual feedback; it disappears on mouse up. */}
+        {/* Ghost sticker */}
         {draggingSticker && (
           <div
             style={{
               position: "fixed",
-              left: draggingSticker.x - 28,  // center on cursor
+              left: draggingSticker.x - 28,  
               top: draggingSticker.y - 28,
               width: 56,
               height: 56,
@@ -223,7 +222,7 @@ const onStickerUpdate = (
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
-              pointerEvents: "none",  // so it doesn't interfere with drop detection
+              pointerEvents: "none", 
               fontWeight: "bold",
               fontSize: 13,
               opacity: 0.85,

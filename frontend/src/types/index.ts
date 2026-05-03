@@ -35,7 +35,8 @@ export interface InsightsResponse {
   insights: {
     card_title: string
     emoji: string
-    days_count: number
+    total_on_card: number 
+    completed_on_card: number
     percentage: number
     message: string
   }[]

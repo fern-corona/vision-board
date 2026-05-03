@@ -1,8 +1,8 @@
 import React from "react"
-import type { Card, Sticker } from "../types"
+import type { Card, InsightsResponse, Sticker } from "../types"
 
 interface Props {
-    insights: any
+    insights: InsightsResponse | null
     cards: Card[]
     stickers: Sticker[]
     COLORS: { bg: string; border: string; text: string }[]
@@ -39,7 +39,7 @@ export const InsightsPanel: React.FC<Props> = ({
                             {ins.emoji} {ins.card_title}
                         </span>
                         <span style={{ fontSize: "0.75rem", color: "#9a5070" }}>
-                            {ins.days_count}/7
+                            {ins.completed_on_card}/{ins.total_on_card}
                         </span>
                     </div>
 

@@ -12,34 +12,34 @@ router = APIRouter(prefix="/insights", tags=["insights"])
 
 @router.get("/")
 def get_insights(db: Session = Depends(get_db)):
-    stickers = db.query(StickerDB).all()
     cards = db.query(CardDB).all()
 
-    card_map = {c.id: c for c in cards}
-
-    counts = {}
-    for s in stickers: 
-        if s.card_id and s.card_id in card_map: 
-            counts[s.card_id] = counts.get(s.card_id, 0) + 1
-
-    total = sum(counts.values())
-
+    total_completed = 0
     insights = []
-    for card_id, count in counts.items():
-        card = card_map[card_id]
-        pct_week = round((count/7)*100)
+
+    for card in cards: 
+        if not card.stickers: 
+            continue 
+
+        total_on_card = len(card.stickers)
+        completed_on_card = len([s for s in card.stickers if s.status == "complete"])
+        pct = round((completed_on_card / total_on_card) * 100)
+
+        total_completed += completed_on_card
+
         insights.append({
             "card_title": card.title, 
             "emoji": card.emoji,
-            "days_count": count, 
-            "percentage": pct_week,
-            "message": get_message(pct_week),
+            "total_on_card": total_on_card,
+            "completed_on_card": completed_on_card,
+            "percentage": pct,
+            "message": get_message(pct),
         })
     return {
-        "insights": sorted(insights, key=lambda x: -x["days_count"]),
-        "total_days_tracked": total,
-        "unassigned_days": [s.day for s in stickers if not s.card_id],
-        "streak_message": get_streak_message(total),
+        "insights": sorted(insights, key=lambda x: -x["completed_on_card"]),
+        "total_days_tracked": total_completed,
+        "unassigned_days": [], #TODO fix this not needed
+        "streak_message": get_streak_message(total_completed),
 
     }
 

@@ -139,9 +139,7 @@ export const Card: React.FC<Props> = ({
   const isMarked  = s.status !== "none"
 
   return (
-    // onMouseEnter/Leave are on this outer wrapper now —
-    // covers both the pill AND the popup so moving between
-    // them never triggers a leave
+
     <div
       key={s.id}
       data-no-drag="true"
@@ -274,7 +272,7 @@ export const Card: React.FC<Props> = ({
         {s.day}
 
         {/* Status indicator — only when marked and not hovered */}
-        {isMarked && !isHovered && (
+        {isMarked && (
           <span style={{
             position: "absolute",
             top: -5,

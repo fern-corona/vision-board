@@ -1,9 +1,7 @@
 import { useState, useCallback } from "react"
 import type { Card, DragState, Sticker } from "../types"
 
-// DAY_ORDER is used to sort stickers on a card in calendar order.
-// When a new sticker is dropped, we insert it and then sort the whole
-// array by this order rather than append it to the end.
+
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"]
 
 export const useDrag = () => {
@@ -87,12 +85,13 @@ export const useDrag = () => {
         e: MouseEvent,
         cards: Card[],
         setCards: React.Dispatch<React.SetStateAction<Card[]>>,
-        saveBoard: (cards: Card[]) => void
+        saveBoard: (cards: Card[]) => Promise<void>,
+        onInsightsUpdate?: () => void
     ) => {
         // ── Card drag end ──
         if (dragging) {
             setDragging(null)
-            saveBoard(cards)
+            saveBoard(cards).then(() => onInsightsUpdate?.())
             return
         }
 
@@ -134,7 +133,7 @@ export const useDrag = () => {
             })
 
             setCards(nextCards)
-            saveBoard(nextCards)
+            saveBoard(nextCards).then(() => onInsightsUpdate?.())
         }
 
         setDraggingSticker(null)
