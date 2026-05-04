@@ -37,8 +37,10 @@ def get_board(db: Session = Depends(get_db)):
             "x": c.x,
             "y": c.y,
             "emoji": c.emoji,
-            "stickers": stickers_by_card.get(c.id, [])
+            "stickers": stickers_by_card.get(c.id, []),
+            "image": c.image,
         })
+        print(c.image)
 
     return {
         "cards": result_cards,
@@ -64,12 +66,15 @@ def save_board(data: BoardData, db: Session = Depends(get_db)):
             existing.x = c.x
             existing.y = c.y
             existing.emoji = c.emoji
+            if c.image is not None: 
+                existing.image = c.image
         else:
             db.add(CardDB(**c.model_dump(exclude={"stickers"})))
 
     db.flush()
 
-    db.query(StickerDB).delete()
+    db.query(StickerDB).delete(synchronize_session=False)
+    db.flush()
     for c in data.cards:
         for s in getattr(c, "stickers", []):
             if s.card_id is None:

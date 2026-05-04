@@ -1,5 +1,5 @@
-import React from "react"
-import type { Card, Sticker } from "../types"
+import React, { useEffect, useRef } from "react"
+import type { Card } from "../types"
 
 interface Props {
     editingCard: Card | null
@@ -15,6 +15,104 @@ export const EditModal: React.FC<Props> = ({
     COLORS
 }) => {
     if (!editingCard) return null
+
+    const canvasRef = useRef<HTMLCanvasElement | null>(null)
+    
+    const processImage = (img: HTMLImageElement) => {
+        const canvas = canvasRef.current
+        if (!canvas) return 
+    
+        const ctx = canvas.getContext("2d")
+        if (!ctx) return 
+    
+        const size = 250
+        canvas.width = size
+        canvas.height = size
+    
+        ctx.clearRect(0, 0, size, size)
+    
+        const minSide = Math.min(img.width, img.height)
+    
+        const sx = (img.width - minSide) / 2
+        const sy = (img.height - minSide) / 2
+    
+        console.log("DRAWING IMAGE", {
+            imgW: img.width,
+            imgH: img.height,
+            sx,
+            sy,
+            minSide
+        })
+    
+        ctx.drawImage(
+            img,
+            sx,
+            sy,
+            minSide,
+            minSide,
+            0,
+            0,
+            size,
+            size
+        )
+    
+        const base64 = canvas.toDataURL("image/jpg", 0.85)
+    
+        console.log("SETTING IMAGE BASE64 LENGTH:", base64.length)
+    
+        setEditingCard(p => {
+            if (!p) return null
+            return { ...p, image: base64 }
+        })
+    }
+
+    const handleFile = (file: File) => {
+        console.log("HANDLE FILE", file)
+    
+        const reader = new FileReader()
+    
+        reader.onload = () => {
+            const img = new Image()
+    
+            img.onload = () => {
+                console.log("IMAGE LOADED")
+                processImage(img)
+            }
+    
+            img.onerror = (err) => {
+                console.error("IMAGE FAILED TO LOAD", err)
+            }
+    
+            img.src = reader.result as string
+        }
+    
+        reader.onerror = (err) => {
+            console.error("FILE READER FAILED", err)
+        }
+    
+        reader.readAsDataURL(file)
+    }
+
+    useEffect(() => {
+        const handlePaste = (e: ClipboardEvent) => {
+            if (!editingCard) return
+
+            const items = e.clipboardData?.items
+            if (!items) return
+
+            for (const item of items) {
+                if (item.type.startsWith("image/")) {
+                    const file = item.getAsFile()
+                    if (file) {
+                        handleFile(file)
+                    }
+                }
+            }
+        }
+        window.addEventListener("paste", handlePaste)
+        return () => window.removeEventListener("paste", handlePaste)
+    }, [editingCard])
+
 
     return (
         <div
@@ -99,6 +197,44 @@ export const EditModal: React.FC<Props> = ({
                             resize: "none"
                         }}
                     />
+                </div>
+
+                {/* Image Upload */}
+                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+                    <label style={{ fontSize: 13, color: "#666", textAlign: "left" }}>
+                        Image (paste or upload)
+                    </label>
+
+                    {/* Preview */}
+                    {editingCard.image && (
+                        <img
+                            src={editingCard.image}
+                            alt="preview"
+                            style={{
+                                width: 100,
+                                height: 100,
+                                objectFit: "cover",
+                                borderRadius: 10,
+                                border: "1px solid #ddd"
+                            }}
+                        />
+                    )}
+
+                    {/* File input */}
+                    <input
+                        type="file"
+                        accept="image/*"
+                        onChange={e => {
+                            console.log("FILE INPUT TRIGGERED")
+                            const file = e.target.files?.[0]
+                            console.log("FILE:", file)
+                            if (file) handleFile(file)
+                        }}
+                    />
+
+                    <small style={{ color: "#999" }}>
+                        Tip: Paste an image directly (Ctrl+V)
+                    </small>
                 </div>
 
                 {/* COLORS */}

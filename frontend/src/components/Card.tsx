@@ -82,6 +82,23 @@ export const Card: React.FC<Props> = ({
                     {card.affirmation}
                 </p>
 
+                {/* Image */}
+                {card.image && (
+                    <img
+                        src={card.image}
+                        alt="card"
+                        draggable={false}
+                        style={{
+                            width: "100%",
+                            height: 120,
+                            objectFit: "cover",
+                            borderRadius: 10,
+                            marginBottom: 6,
+                            pointerEvents: "none", // prevents drag interference
+                        }}
+                    />
+                )}
+
                 {/* Edit button */}
                 <div style={{ display: "flex", justifyContent: "flex-end" }}>
                     <button

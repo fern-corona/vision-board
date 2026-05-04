@@ -1,5 +1,6 @@
 
 export interface Card {
+    image?: string | null
     stickers: Sticker[]
     id: string
     title: string

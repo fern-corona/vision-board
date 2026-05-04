@@ -1,4 +1,4 @@
-from sqlalchemy import Column, String, Float, Integer, ForeignKey
+from sqlalchemy import Column, String, Float, Integer, ForeignKey, Text
 from database.base import Base
 from sqlalchemy.orm import relationship
 
@@ -12,4 +12,8 @@ class CardDB(Base):
     x           = Column(Float, nullable=False, default=100)
     y           = Column(Float, nullable=False, default=100)
     emoji       = Column(String, nullable=False, default="*")
-    stickers = relationship("StickerDB", back_populates="card", cascade="all, delete-orphan")
+    image       = Column(Text, nullable=True)
+    stickers    = relationship(
+                    "StickerDB", 
+                    back_populates="card", 
+                    cascade="all, delete-orphan")

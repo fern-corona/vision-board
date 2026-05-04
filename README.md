@@ -17,3 +17,10 @@ uvicorn main:app --reload --port 8000
 cd frontend
 npm install
 npm run dev
+
+
+### Future Features:
+- Add option to drag crop box 
+- Possibly align boxes 
+- Move Day Stickers to other section
+- Add Additional Insights

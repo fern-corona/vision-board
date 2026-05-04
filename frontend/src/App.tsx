@@ -127,9 +127,16 @@ const onStickerUpdate = (
 
   const saveEdit = () => {
     if (!editingCard) return
-    const next = cards.map(c => c.id === editingCard.id ? { ...c, ...editingCard } : c)
-    setCards(next)
-    saveBoard(next)
+  
+    setCards(prev => {
+      const next = prev.map(c =>
+        c.id === editingCard.id ? { ...editingCard } : c
+      )
+  
+      saveBoard(next)
+      return next
+    })
+  
     setEditingCard(null)
   }
 
