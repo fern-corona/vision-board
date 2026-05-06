@@ -28,46 +28,26 @@ export const EditModal: React.FC<Props> = ({
         const size = 250
         canvas.width = size
         canvas.height = size
+
+        ctx.fillStyle = "#ffffff"
+        ctx.fillRect(0, 0, size, size)
+
+        const scale = Math.min(size / img.width, size / img.height)
+        const drawW = img.width * scale
+        const drawH = img.width * scale 
+
+        const offsetX = (size - drawW) / 2
+        const offsetY = (size - drawH) / 2
+
+        ctx.drawImage(img, offsetX, offsetY, drawW, drawH)
+
     
-        ctx.clearRect(0, 0, size, size)
+        const base64 = canvas.toDataURL("image/jpeg", 0.85)
     
-        const minSide = Math.min(img.width, img.height)
-    
-        const sx = (img.width - minSide) / 2
-        const sy = (img.height - minSide) / 2
-    
-        console.log("DRAWING IMAGE", {
-            imgW: img.width,
-            imgH: img.height,
-            sx,
-            sy,
-            minSide
-        })
-    
-        ctx.drawImage(
-            img,
-            sx,
-            sy,
-            minSide,
-            minSide,
-            0,
-            0,
-            size,
-            size
-        )
-    
-        const base64 = canvas.toDataURL("image/jpg", 0.85)
-    
-        console.log("SETTING IMAGE BASE64 LENGTH:", base64.length)
-    
-        setEditingCard(p => {
-            if (!p) return null
-            return { ...p, image: base64 }
-        })
+        setEditingCard(p => p ? { ...p, image: base64 } : null)
     }
 
     const handleFile = (file: File) => {
-        console.log("HANDLE FILE", file)
     
         const reader = new FileReader()
     
@@ -75,7 +55,6 @@ export const EditModal: React.FC<Props> = ({
             const img = new Image()
     
             img.onload = () => {
-                console.log("IMAGE LOADED")
                 processImage(img)
             }
     
@@ -96,24 +75,88 @@ export const EditModal: React.FC<Props> = ({
     useEffect(() => {
         const handlePaste = (e: ClipboardEvent) => {
             if (!editingCard) return
-
+    
             const items = e.clipboardData?.items
             if (!items) return
 
-            for (const item of items) {
+            const itemArray = Array.from(items)
+    
+            for (const item of itemArray ) {
                 if (item.type.startsWith("image/")) {
                     const file = item.getAsFile()
                     if (file) {
                         handleFile(file)
+                        return
                     }
                 }
+                // if (item.type.startsWith("image/")) {
+                //     const file = item.getAsFile()
+                //     if (!file) continue
+    
+                //     const reader = new FileReader()
+                //     reader.onload = () => {
+                //         const img = new Image()
+                //         img.onload = () => {
+                //             const canvas = canvasRef.current
+                //             if (!canvas) return
+    
+                //             const ctx = canvas.getContext("2d")
+                //             if (!ctx) return
+    
+                //             const size = 250
+                //             canvas.width  = size
+                //             canvas.height = size
+    
+                //             ctx.fillStyle = "#ffffff"
+                //             ctx.fillRect(0, 0, size, size)
+    
+                //             const scale   = Math.min(size / img.width, size / img.height)
+                //             const drawW   = img.width  * scale
+                //             const drawH   = img.height * scale
+                //             const offsetX = (size - drawW) / 2
+                //             const offsetY = (size - drawH) / 2
+    
+                //             ctx.drawImage(img, offsetX, offsetY, drawW, drawH)
+    
+                //             const base64 = canvas.toDataURL("image/jpeg", 0.85)
+                //             setEditingCard(p => p ? { ...p, image: base64 } : null)
+                //         }
+                //         img.src = reader.result as string
+                //     }
+                //     reader.readAsDataURL(file)
+                //     break  //
+                // }
+            }
+
+            const htmlItem = itemArray.find(i => i.type === "text/html")
+            if (htmlItem) {
+                htmlItem.getAsString(async (html) => {
+                    const parser = new DOMParser()
+                    const doc    = parser.parseFromString(html, "text/html")
+                    const imgEl  = doc.querySelector("img")
+
+                    if (!imgEl?.src) {
+                        console.log("No img src found in HTML clipboard")
+                        return
+                    }
+        
+
+                    try {
+                        const res  = await fetch(imgEl.src)
+                        const blob = await res.blob()
+                        const file = new File([blob], "pasted-image.png", { type: blob.type })
+                        handleFile(file)
+                    } catch (err) {
+                        console.error("Failed to fetch Google Docs image:", err)
+                        alert("Could not paste from Google Docs — try right-clicking the image and saving it first, then use the Browse button to upload it.")
+                    }
+                })
             }
         }
+    
         window.addEventListener("paste", handlePaste)
         return () => window.removeEventListener("paste", handlePaste)
-    }, [editingCard])
-
-
+    }, [editingCard])  
     return (
         <div
             onClick={() => setEditingCard(null)}
@@ -128,6 +171,7 @@ export const EditModal: React.FC<Props> = ({
                 zIndex: 100,
                 }}
         >
+            <canvas ref={canvasRef} style={{ display: "none" }} />
             <div
                 onClick={e=> e.stopPropagation()}
                 style={{
@@ -207,37 +251,63 @@ export const EditModal: React.FC<Props> = ({
 
                     {/* Preview */}
                     {editingCard.image && (
-                        <img
-                            src={editingCard.image}
-                            alt="preview"
-                            style={{
-                                width: 100,
-                                height: 100,
-                                objectFit: "cover",
-                                borderRadius: 10,
-                                border: "1px solid #ddd"
-                            }}
-                        />
+                        <div style={{ position: "relative", display: "inline-block" }}>
+                            <img
+                                src={editingCard.image}
+                                alt="preview"
+                                style={{
+                                    width: 100,
+                                    height: 100,
+                                    objectFit: "cover",
+                                    borderRadius: 10,
+                                    border: "1px solid #ddd",
+                                    display: "block",
+                                }}
+                            />
+                            <button 
+                                onClick={() => setEditingCard(p => p ? {...p, image: undefined } : null)}
+                                style={{
+                                    position: "absolute",
+                                    top: -8,
+                                    right: -8,
+                                    width: 22, 
+                                    height: 22, 
+                                    borderRadius: "50%",
+                                    background: "#e57373",
+                                    color: "white",
+                                    border: "none",
+                                    cursor: "pointer",
+                                    fontSize: 12, 
+                                    display: "flex",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                            >
+                                x 
+                            </button> 
+                        </div>
                     )}
 
                     {/* File input */}
                     <input
                         type="file"
                         accept="image/*"
-                        onChange={e => {
-                            console.log("FILE INPUT TRIGGERED")
+                        onChange={e => { 
                             const file = e.target.files?.[0]
-                            console.log("FILE:", file)
                             if (file) handleFile(file)
                         }}
+                        style={{ fontSize: 13 }}
                     />
 
-                    <small style={{ color: "#999" }}>
-                        Tip: Paste an image directly (Ctrl+V)
+                    <small 
+                        style={{ 
+                            color: "#999" 
+                        }}>
+                            Tip: You can also paste an image (Ctrl+V / Cmd+V)
                     </small>
                 </div>
 
-                {/* COLORS */}
+                {/* Color Picker */}
                 <div style={{ 
                     display: "flex",
                     gap: 10,

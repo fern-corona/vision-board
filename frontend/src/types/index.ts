@@ -1,55 +1,52 @@
-
 export interface Card {
-    image?: string | null
-    stickers: Sticker[]
-    id: string
-    title: string
-    affirmation: string
-    color: number
-    x: number
-    y: number
-    emoji: string
-  }
-  
+  stickers: Sticker[];
+  id: string;
+  title: string;
+  affirmation: string;
+  color: number;
+  x: number;
+  y: number;
+  emoji: string;
+  image?: string | null;
+}
+
 export interface Sticker {
-id: string
-day: string 
-x: number 
-y: number 
-card_id: string | null
-status: "none" | "complete" | "incomplete" 
+  id: string;
+  day: string;
+  x: number;
+  y: number;
+  card_id: string | null;
+  status: "none" | "complete" | "incomplete";
 }
 
 export interface DragState {
-type: "card" | "sticker"
-id: string
-offsetX: number
-offsetY: number
+  type: "card" | "sticker";
+  id: string;
+  offsetX: number;
+  offsetY: number;
 }
 
 export interface BoardData {
-cards: Card[]
-stickers: Sticker[]
+  cards: Card[];
+  stickers: Sticker[];
 }
 
 export interface InsightsResponse {
   insights: {
-    card_title: string
-    emoji: string
-    total_on_card: number 
-    completed_on_card: number
-    percentage: number
-    message: string
-  }[]
-  total_days_tracked: number
-  unassigned_days: string[]
-  streak_message: string
+    card_title: string;
+    emoji: string;
+    total_on_card: number;
+    completed_on_card: number;
+    percentage: number;
+    message: string;
+  }[];
+  total_days_tracked: number;
+  unassigned_days: string[];
+  streak_message: string;
 }
 
 export interface ColorScheme {
-  bg: string
-  border: string
-  text: string
+  bg: string;
+  border: string;
+  text: string;
 }
-
-
