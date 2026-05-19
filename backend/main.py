@@ -10,7 +10,11 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=[
+        "http://localhost:5173",
+        "https://fern-corona.github.io"
+        ]
+        ,
     allow_methods=["*"],
     allow_headers=["*"],
 )
