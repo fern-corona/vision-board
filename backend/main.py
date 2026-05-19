@@ -15,6 +15,7 @@ app.add_middleware(
         "https://fern-corona.github.io"
         ]
         ,
+    allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
