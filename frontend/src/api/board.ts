@@ -1,7 +1,7 @@
 import type { BoardData, Card } from "../types"
 
-const API = "http://localhost:8000" //TODO: remove this
-
+//const API = "http://localhost:8000" //TODO: remove this
+const API = "https://vision-board-api.onrender.com"
 
 export const fetchBoard = async(): Promise<BoardData> => {
     const res = await fetch(`${API}/board`)
