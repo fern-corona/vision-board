@@ -1,4 +1,4 @@
-import type { Card, Sticker, InsightsResponse} from "../types";
+import type {InsightsResponse} from "../types";
 
 const API = "http://localhost:8000"
 

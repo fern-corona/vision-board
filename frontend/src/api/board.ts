@@ -1,4 +1,4 @@
-import type { BoardData, Card, Sticker } from "../types"
+import type { BoardData, Card } from "../types"
 
 const API = "http://localhost:8000" //TODO: remove this
 

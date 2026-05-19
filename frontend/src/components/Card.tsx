@@ -3,13 +3,13 @@ import type { Card as CardType, Sticker } from "../types";
 
 const DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-const COLORS = [
-  { bg: "#fce4ec", border: "#f48fb1", text: "#880e4f" },
-  { bg: "#e8f5e9", border: "#a5d6a7", text: "#1b5e20" },
-  { bg: "#e3f2fd", border: "#90caf9", text: "#0d47a1" },
-  { bg: "#fff8e1", border: "#ffe082", text: "#e65100" },
-  { bg: "#f3e5f5", border: "#ce93d8", text: "#4a148c" },
-];
+// const COLORS = [
+//   { bg: "#fce4ec", border: "#f48fb1", text: "#880e4f" },
+//   { bg: "#e8f5e9", border: "#a5d6a7", text: "#1b5e20" },
+//   { bg: "#e3f2fd", border: "#90caf9", text: "#0d47a1" },
+//   { bg: "#fff8e1", border: "#ffe082", text: "#e65100" },
+//   { bg: "#f3e5f5", border: "#ce93d8", text: "#4a148c" },
+// ];
 
 interface Props {
   card: CardType;

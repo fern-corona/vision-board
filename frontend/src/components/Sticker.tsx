@@ -1,5 +1,5 @@
 import React from "react"
-import type { Sticker as StickerType, Card as CardType } from "../types"
+import type { Sticker as StickerType } from "../types"
 
 interface Props {
     sticker: StickerType 
@@ -10,12 +10,12 @@ interface Props {
 
 export const Sticker: React.FC<Props> = ({ sticker, onMouseDown, COLORS }) => {
     //const assignedCard = sticker.card_id ? cards.find(c => c.id === sticker.card_id) : undefined
-    const getBorderColor = (card: CardType) => {
-        return COLORS[card.color % COLORS.length].border
-    }
+    // const getBorderColor = (card: CardType) => {
+    //     return COLORS[card.color % COLORS.length].border
+    // }
     const stickerWidth = 56
-    const stickerGap = 5
-
+    // const stickerGap = 5
+    COLORS
     return (
         <div 
         onMouseDown={e => onMouseDown(e, sticker.id)}

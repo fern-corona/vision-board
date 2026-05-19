@@ -55,7 +55,7 @@ export const useDrag = () => {
     const onMouseMove = useCallback((
         e: MouseEvent,
         boardRef: React.RefObject<HTMLDivElement | null>,
-        cards: Card[],
+        // cards: Card[],
         setCards: React.Dispatch<React.SetStateAction<Card[]>>
     ) => {
         // ── Sticker following mouse ──

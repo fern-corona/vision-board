@@ -86,7 +86,7 @@ const onStickerUpdate = (
 
 
   useEffect(() => {
-    const move = (e: MouseEvent) => onMouseMove(e, boardRef, cards, setCards)
+    const move = (e: MouseEvent) => onMouseMove(e, boardRef, setCards)
 
     const up = (e: MouseEvent) => onMouseUp(
       e, 
